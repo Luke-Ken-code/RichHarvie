@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICH HARVIE • Visual Stories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Inter:wght@300;400;500&amp;display=swap');
+        
+        :root {
+            --gold: #C5A26F;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .heading-serif {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .cinematic {
+            background: linear-gradient(rgba(15,15,15,0.65), rgba(15,15,15,0.75));
+        }
+
+        .gallery-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .gallery-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        }
+
+        .photo-grid {
+            column-count: 2;
+            column-gap: 12px;
+        }
+        
+        @media (min-width: 768px) {
+            .photo-grid {
+                column-count: 3;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .photo-grid {
+                column-count: 4;
+            }
+        }
+
+        .photo-item {
+            break-inside: avoid;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .photo-item:hover img {
+            transform: scale(1.08);
+        }
+        
+        .photo-item:hover .photo-overlay {
+            opacity: 1;
+        }
+
+        .nav-active {
+            color: #C5A26F;
+            position: relative;
+        }
+        
+        .nav-active:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: #C5A26F;
+        }
+
+        .lightbox {
+            animation: fadeInScale 0.3s ease forwards;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .section {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .gold-text {
+            color: #C5A26F;
+        }
+
+        .premium-shadow {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 
+                       0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+
+        .film-grain {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 50%, transparent 50%),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 50%, transparent 50%);
+            background-size: 4px 4px;
+            pointer-events: none;
+        }
+
+        .toast {
+            animation: slideUp 0.4s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-[#0F0F0F] text-white overflow-x-hidden">
+    <!-- NAV -->
+    <nav class="sticky top-0 z-50 bg-[#0F0F0F]/95 backdrop-blur-xl border-b border-white/10">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-8 py-5 flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 rounded-full border border-[#C5A26F] flex items-center justify-center">
+                        <i class="fa-solid fa-camera text-[#C5A26F] text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-3xl tracking-tighter heading-serif">RICH HARVIE</div>
+                        <div class="text-[10px] text-white/60 -mt-1 tracking-[2px]">EST 2009</div>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex items-center gap-x-10 text-sm uppercase tracking-widest font-medium">
+                    <a onclick="showSection('home')" class="cursor-pointer hover:text-[#C5A26F] transition-colors">Home</a>
+                    <a onclick="showSection('galleries')" class="cursor-pointer hover:text-[#C5A26F] transition-colors">Galleries</a>
+                    <a onclick="showSection('about')" class="cursor-pointer hover:text-[#C5A26F] transition-colors">About</a>
+                    <a onclick="showSection('contact')" class="cursor-pointer hover:text-[#C5A26F] transition-colors">Contact</a>
+                </div>
+
+                <div class="flex items-center gap-x-4">
+                    <!-- Search -->
+                    <div class="relative hidden md:block w-72">
+                        <input id="global-search" 
+                               type="text" 
+                               placeholder="Search photographs..." 
+                               onkeyup="handleGlobalSearch(this.value)"
+                               class="w-full bg-white/5 border border-white/20 focus:border-[#C5A26F] pl-11 py-2.5 text-sm rounded-2xl outline-none transition-all">
+                        <i class="fa-solid fa-search absolute left-4 top-3.5 text-white/50"></i>
+                    </div>
+
+                    <!-- Manage Button -->
+                    <button onclick="openAdmin()"
+                            class="px-6 py-2.5 text-sm font-medium border border-white/30 hover:border-[#C5A26F] hover:text-[#C5A26F] rounded-2xl flex items-center gap-x-2 transition-all active:scale-[0.985]">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span class="hidden md:inline">Manage</span>
+                    </button>
+
+                    <!-- Mobile Menu -->
+                    <button class="md:hidden px-4 py-2" onclick="toggleMobileMenu()">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-[#0F0F0F]/95 border-t border-white/10 z-50 px-2 py-2">
+        <div class="flex justify-around text-xs">
+            <div onclick="showSection('home')" class="flex flex-col items-center py-1 px-4 cursor-pointer">
+                <i class="fa-solid fa-home text-lg mb-0.5"></i>
+                <span class="text-[10px]">Home</span>
+            </div>
+            <div onclick="showSection('galleries')" class="flex flex-col items-center py-1 px-4 cursor-pointer">
+                <i class="fa-solid fa-images text-lg mb-0.5"></i>
+                <span class="text-[10px]">Galleries</span>
+            </div>
+            <div onclick="showSection('favorites')" class="flex flex-col items-center py-1 px-4 cursor-pointer">
+                <i class="fa-solid fa-heart text-lg mb-0.5"></i>
+                <span class="text-[10px]">Favorites</span>
+            </div>
+            <div onclick="openAdmin()" class="flex flex-col items-center py-1 px-4 cursor-pointer">
+                <i class="fa-solid fa-cog text-lg mb-0.5"></i>
+                <span class="text-[10px]">Manage</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOME / HERO -->
+    <div id="home" class="section max-w-screen-2xl mx-auto">
+        <div class="relative h-[100dvh] flex items-center justify-center overflow-hidden">
+            <!-- Hero Background -->
+            <div class="absolute inset-0 bg-cover bg-center" 
+                 style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=2000&amp;q=85')">
+                <div class="absolute inset-0 cinematic"></div>
+                <div class="film-grain absolute inset-0"></div>
+            </div>
+            
+            <div class="relative z-10 text-center px-6 max-w-4xl">
+                <div class="inline-flex items-center gap-x-2 px-5 py-1.5 rounded-full border border-white/30 text-xs tracking-[2px] mb-6">
+                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                    LONDON • NEW YORK • TOKYO
+                </div>
+                
+                <h1 class="text-[92px] md:text-[120px] leading-none font-bold heading-serif tracking-tighter mb-2">RICH<br>HARVIE</h1>
+                <p class="text-2xl md:text-3xl font-light tracking-tight text-white/90 mb-8">Master of Light &amp; Shadow</p>
+                
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="showSection('galleries')"
+                            class="px-10 py-4 bg-white text-black font-medium text-sm rounded-3xl hover:bg-[#C5A26F] hover:text-white transition-all flex items-center justify-center gap-x-3 group">
+                        <span>EXPLORE THE EXHIBITION</span>
+                        <i class="fa-solid fa-arrow-right group-active:translate-x-1 transition"></i>
+                    </button>
+                    
+                    <button onclick="showSection('contact')"
+                            class="px-10 py-4 border border-white/60 hover:bg-white/10 font-medium text-sm rounded-3xl transition-all">
+                        INQUIRE ABOUT WORK
+                    </button>
+                </div>
+                
+                <div class="mt-16 text-xs tracking-widest text-white/50">SCROLL TO BEGIN YOUR JOURNEY ↓</div>
+            </div>
+            
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                <div class="w-px h-12 bg-gradient-to-b from-transparent via-white/40 to-transparent"></div>
+            </div>
+        </div>
+        
+        <!-- Featured Works -->
+        <div class="max-w-screen-2xl mx-auto px-8 py-16">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <div class="uppercase text-xs tracking-[3px] text-white/50">CURATED SELECTION</div>
+                    <div class="text-4xl font-semibold heading-serif">Featured Works</div>
+                </div>
+                <button onclick="showSection('galleries')" 
+                        class="text-sm flex items-center gap-x-2 text-[#C5A26F] hover:text-white transition-colors">
+                    VIEW ALL <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="featured-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- GALLERIES SECTION -->
+    <div id="galleries" class="section hidden max-w-screen-2xl mx-auto px-8 py-16">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+            <div>
+                <div class="uppercase tracking-[3px] text-xs text-white/50">THE COLLECTION</div>
+                <h2 class="text-6xl heading-serif font-bold tracking-tighter">Galleries</h2>
+            </div>
+            
+            <div class="flex items-center gap-x-4 mt-6 md:mt-0">
+                <div class="relative w-80">
+                    <input id="gallery-search" type="text" placeholder="Search across all photographs..." 
+                           onkeyup="filterGalleries()"
+                           class="w-full bg-white/5 border border-white/20 pl-11 py-3 rounded-2xl text-sm outline-none">
+                    <i class="fa-solid fa-search absolute left-4 top-4 text-white/40"></i>
+                </div>
+                <button onclick="showAllPhotos()" 
+                        class="px-5 py-3 text-sm border border-white/20 hover:bg-white/5 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-th-large"></i>
+                    <span>All Photos</span>
+                </button>
+            </div>
+        </div>
+        
+        <div id="galleries-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            <!-- Populated dynamically by JS -->
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="about" class="section hidden max-w-screen-2xl mx-auto px-8 py-16">
+        <div class="grid md:grid-cols-12 gap-x-16 items-center">
+            <div class="md:col-span-7">
+                <div class="uppercase text-xs tracking-[3px] text-white/50 mb-3">THE ARTIST</div>
+                <h2 class="text-7xl heading-serif font-bold tracking-tighter leading-none mb-8">Rich Harvie</h2>
+                
+                <div class="prose prose-invert max-w-2xl text-lg text-white/80 leading-relaxed">
+                    <p>For over fifteen years, Rich Harvie has been capturing the quiet poetry of the modern world. His work has been exhibited at the Victoria &amp; Albert Museum, the Guggenheim, and featured in National Geographic, The New York Times, and The Guardian.</p>
+                    
+                    <p class="mt-4">Harvie’s signature approach — dramatic chiaroscuro and an almost spiritual attention to light — has earned him the Sony World Photography Award (2023) and the Royal Photographic Society’s Gold Medal.</p>
+                </div>
+                
+                <div class="mt-10 grid grid-cols-3 gap-8 text-center">
+                    <div>
+                        <div class="text-4xl font-bold text-[#C5A26F]">87</div>
+                        <div class="text-xs tracking-widest mt-1 text-white/50">EXHIBITIONS</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-[#C5A26F]">19</div>
+                        <div class="text-xs tracking-widest mt-1 text-white/50">COUNTRIES</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-[#C5A26F]">4.2k</div>
+                        <div class="text-xs tracking-widest mt-1 text-white/50">PRINTS SOLD</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="md:col-span-5 mt-12 md:mt-0">
+                <div class="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 premium-shadow">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200" 
+                         class="w-full h-full object-cover" alt="Rich Harvie portrait">
+                </div>
+                <div class="text-center mt-4 text-sm text-white/60">Rich Harvie, Shoreditch Studio, 2025</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div id="contact" class="section hidden max-w-screen-2xl mx-auto px-8 py-16">
+        <div class="max-w-2xl mx-auto text-center">
+            <div class="uppercase text-xs tracking-[3px] text-white/50">LET'S CREATE SOMETHING TIMELESS</div>
+            <h2 class="text-6xl heading-serif font-bold tracking-tighter mt-3 mb-10">Get in Touch</h2>
+            
+            <form id="contact-form" onsubmit="submitContactForm(event)" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="text" placeholder="Your Name" required
+                           class="bg-white/5 border border-white/20 rounded-2xl px-6 py-4 text-sm outline-none focus:border-[#C5A26F]">
+                    <input type="email" placeholder="Email Address" required
+                           class="bg-white/5 border border-white/20 rounded-2xl px-6 py-4 text-sm outline-none focus:border-[#C5A26F]">
+                </div>
+                
+                <select required class="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 text-sm outline-none focus:border-[#C5A26F]">
+                    <option value="">Select Inquiry Type</option>
+                    <option>Commission a New Work</option>
+                    <option>Purchase Limited Edition Print</option>
+                    <option>Exhibition or Gallery Inquiry</option>
+                    <option>Press &amp; Media</option>
+                    <option>Other</option>
+                </select>
+                
+                <textarea placeholder="Tell me about your project..." rows="5" required
+                          class="w-full bg-white/5 border border-white/20 rounded-3xl px-6 py-4 text-sm outline-none focus:border-[#C5A26F]"></textarea>
+                
+                <button type="submit"
+                        class="w-full py-4 bg-[#C5A26F] hover:bg-amber-600 text-black font-semibold rounded-3xl transition-all flex items-center justify-center gap-x-3">
+                    <span>SEND MESSAGE</span>
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+            
+            <div class="mt-12 text-sm text-white/60 space-y-1">
+                <div>rich@richharvie.com &nbsp;•&nbsp; +44 20 7946 0958</div>
+                <div>Studio 12, 14-16 Great Eastern Street, London EC2A 3EP</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAVORITES -->
+    <div id="favorites" class="section hidden max-w-screen-2xl mx-auto px-8 py-16">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <div class="flex items-center gap-x-4">
+                    <i class="fa-solid fa-heart text-[#C5A26F] text-4xl"></i>
+                    <div>
+                        <div class="text-5xl heading-serif font-bold">Favorites</div>
+                        <div id="favorites-count" class="text-white/60">0 photographs saved</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="favorites-grid" class="photo-grid">
+            <!-- Populated by JS -->
+        </div>
+        
+        <div id="favorites-empty" class="hidden text-center py-16 text-white/50">
+            <i class="fa-solid fa-heart text-6xl mb-4 opacity-30"></i>
+            <p class="text-xl">No favorites yet.<br>Tap the heart on any photograph to save it.</p>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div id="lightbox" onclick="if (event.target.id === 'lightbox') closeLightbox()" 
+         class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="max-w-[1100px] w-full relative">
+            
+            <!-- Lightbox Content -->
+            <div class="relative">
+                <img id="lightbox-image" class="max-h-[82vh] w-full object-contain rounded-3xl shadow-2xl" alt="">
+                
+                <!-- Controls -->
+                <div class="absolute top-6 right-6 flex gap-x-3">
+                    <button onclick="toggleFavoriteInLightbox()" 
+                            class="w-11 h-11 bg-black/60 hover:bg-black/80 rounded-2xl flex items-center justify-center text-white transition-all">
+                        <i id="lightbox-heart" class="fa-solid fa-heart text-xl"></i>
+                    </button>
+                    
+                    <button onclick="sharePhoto()" 
+                            class="w-11 h-11 bg-black/60 hover:bg-black/80 rounded-2xl flex items-center justify-center text-white transition-all">
+                        <i class="fa-solid fa-share-alt text-xl"></i>
+                    </button>
+                    
+                    <button onclick="downloadPhoto()" 
+                            class="w-11 h-11 bg-black/60 hover:bg-black/80 rounded-2xl flex items-center justify-center text-white transition-all">
+                        <i class="fa-solid fa-download text-xl"></i>
+                    </button>
+                    
+                    <button onclick="closeLightbox()" 
+                            class="w-11 h-11 bg-black/60 hover:bg-black/80 rounded-2xl flex items-center justify-center text-white transition-all">
+                        <i class="fa-solid fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Navigation -->
+                <button onclick="prevPhoto()" 
+                        class="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-black/60 hover:bg-black/80 rounded-2xl flex items-center justify-center text-white transition-all">
+                    <i class="fa-solid fa-chevron-left text-2xl"></i>
+                </button>
+                
+                <button onclick="nextPhoto()" 
+                        class="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-black/60 hover:bg-black/80 rounded-2xl flex items-center justify-center text-white transition-all">
+                    <i class="fa-solid fa-chevron-right text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Info Bar -->
+            <div class="bg-[#111] rounded-3xl mt-4 p-6 text-sm flex flex-col md:flex-row md:items-center justify-between gap-y-4">
+                <div>
+                    <div id="lightbox-title" class="font-semibold text-xl text-white"></div>
+                    <div id="lightbox-caption" class="text-white/70 mt-1 max-w-lg"></div>
+                </div>
+                
+                <div class="text-right text-xs text-white/60 font-mono">
+                    <div id="lightbox-exif"></div>
+                    <div id="lightbox-counter" class="mt-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <div id="admin-modal" onclick="if (event.target.id === 'admin-modal') closeAdmin()" 
+         class="hidden fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-[#111] w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 max-h-[92vh] flex flex-col">
+            
+            <!-- Admin Header -->
+            <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-[#0A0A0A]">
+                <div class="flex items-center gap-x-4">
+                    <i class="fa-solid fa-shield-halved text-[#C5A26F] text-2xl"></i>
+                    <div>
+                        <div class="font-semibold text-xl">Studio Dashboard</div>
+                        <div class="text-xs text-white/50">Rich Harvie • Admin Mode</div>
+                    </div>
+                </div>
+                
+                <button onclick="closeAdmin()" class="text-white/70 hover:text-white px-4 py-2">
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-auto p-8">
+                <!-- Admin Content -->
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-xl font-semibold">Your Galleries</div>
+                    <button onclick="createNewGallery()" 
+                            class="px-6 py-2.5 bg-[#C5A26F] hover:bg-amber-600 text-black rounded-2xl text-sm font-semibold flex items-center gap-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>New Gallery</span>
+                    </button>
+                </div>
+                
+                <div id="admin-galleries-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <div class="border-t border-white/10 pt-8">
+                    <div class="text-sm text-white/60 mb-4">Quick Actions</div>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="exportData()" class="px-5 py-2 text-sm border border-white/20 hover:bg-white/5 rounded-2xl flex items-center gap-x-2">
+                            <i class="fa-solid fa-download"></i> Export Collection
+                        </button>
+                        <button onclick="importData()" class="px-5 py-2 text-sm border border-white/20 hover:bg-white/5 rounded-2xl flex items-center gap-x-2">
+                            <i class="fa-solid fa-upload"></i> Import Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-y-3"></div>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent-gold', '#C5A26F');
+        }
+        
+        // Data Store
+        let data = {
+            galleries: []
+        };
+        
+        function loadData() {
+            const saved = localStorage.getItem('richHarvieData');
+            if (saved) {
+                data = JSON.parse(saved);
+            } else {
+                // Seed initial data
+                seedInitialData();
+            }
+        }
+        
+        function saveData() {
+            localStorage.setItem('richHarvieData', JSON.stringify(data));
+        }
+        
+        function seedInitialData() {
+            const sampleGalleries = [
+                {
+                    id: Date.now(),
+                    name: "Urban Echoes",
+                    description: "The poetry of concrete and neon after dark",
+                    cover: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800",
+                    photos: [
+                        { id: 1, url: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1200", title: "Midnight Alley", caption: "Shoreditch, 2024", exif: "Sony A7R IV • 35mm f/1.4 • ISO 1600" },
+                        { id: 2, url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=1200", title: "Neon Reverie", caption: "Tokyo, 2023", exif: "Canon R5 • 50mm f/1.2 • ISO 800" },
+                        { id: 3, url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1200", title: "Concrete Dreams", caption: "New York, 2022", exif: "Leica M11 • 28mm f/2 • ISO 400" }
+                    ]
+                },
+                {
+                    id: Date.now() + 1,
+                    name: "Wild Horizons",
+                    description: "Untamed landscapes where the earth meets the sky",
+                    cover: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+                    photos: [
+                        { id: 4, url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200", title: "Patagonia Dawn", caption: "Torres del Paine, 2024", exif: "Sony A1 • 24-70mm f/2.8 • ISO 100" },
+                        { id: 5, url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200", title: "Golden Hour Ridge", caption: "Scottish Highlands", exif: "Nikon Z8 • 14-24mm f/2.8 • ISO 64" }
+                    ]
+                },
+                {
+                    id: Date.now() + 2,
+                    name: "Portraits of the Soul",
+                    description: "Intimate encounters with humanity",
+                    cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
+                    photos: [
+                        { id: 6, url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200", title: "The Weight of Silence", caption: "London, 2025", exif: "Canon R6 II • 85mm f/1.4 • ISO 320" },
+                        { id: 7, url: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=1200", title: "Eyes That Remember", caption: "Marrakech, 2023", exif: "Leica SL2 • 50mm f/1.4 • ISO 200" }
+                    ]
+                },
+                {
+                    id: Date.now() + 3,
+                    name: "Silent Architecture",
+                    description: "The quiet geometry of built environments",
+                    cover: "https://images.unsplash.com/photo-1487958441734-2c8e6b5f0c0e?w=800",
+                    photos: [
+                        { id: 8, url: "https://images.unsplash.com/photo-1487958441734-2c8e6b5f0c0e?w=1200", title: "Concrete Cathedral", caption: "Brutalist London", exif: "Fujifilm GFX100S • 45mm f/2.8 • ISO 100" }
+                    ]
+                },
+                {
+                    id: Date.now() + 4,
+                    name: "The In-Between",
+                    description: "Moments suspended between light and shadow",
+                    cover: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+                    photos: []
+                }
+            ];
+            
+            data.galleries = sampleGalleries;
+            saveData();
+        }
+        
+        // Render Galleries
+        function renderGalleries(filteredGalleries = null) {
+            const container = document.getElementById('galleries-grid');
+            container.innerHTML = '';
+            
+            const galleriesToShow = filteredGalleries || data.galleries;
+            
+            if (galleriesToShow.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-white/50">No galleries found.</div>`;
+                return;
+            }
+            
+            galleriesToShow.forEach(gallery => {
+                const photoCount = gallery.photos.length;
+                const card = document.createElement('div');
+                card.className = `gallery-card bg-[#111] rounded-3xl overflow-hidden border border-white/10 cursor-pointer group`;
+                
+                card.innerHTML = `
+                    <div class="relative h-80 overflow-hidden">
+                        <img src="${gallery.cover}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="${gallery.name}">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                        
+                        <div class="absolute bottom-0 left-0 p-6 w-full">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <div class="text-2xl font-semibold heading-serif tracking-tight">${gallery.name}</div>
+                                    <div class="text-sm text-white/70 line-clamp-2 mt-1">${gallery.description}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-white/60">${photoCount} photos</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute top-4 right-4 px-3 py-1 text-xs rounded-full bg-black/70 flex items-center gap-x-1">
+                            <i class="fa-solid fa-images text-xs"></i>
+                            <span>${photoCount}</span>
+                        </div>
+                    </div>
+                `;
+                
+                card.onclick = () => openGallery(gallery.id);
+                container.appendChild(card);
+            });
+        }
+        
+        function filterGalleries() {
+            const searchTerm = document.getElementById('gallery-search').value.toLowerCase();
+            if (!searchTerm) {
+                renderGalleries();
+                return;
+            }
+            
+            const filtered = data.galleries.filter(g => 
+                g.name.toLowerCase().includes(searchTerm) || 
+                g.description.toLowerCase().includes(searchTerm) ||
+                g.photos.some(p => p.title.toLowerCase().includes(searchTerm) || p.caption.toLowerCase().includes(searchTerm))
+            );
+            
+            renderGalleries(filtered);
+        }
+        
+        function showAllPhotos() {
+            const allPhotos = [];
+            data.galleries.forEach(gallery => {
+                gallery.photos.forEach(photo => {
+                    allPhotos.push({...photo, galleryName: gallery.name, galleryId: gallery.id});
+                });
+            });
+            
+            // Create temporary view
+            const container = document.getElementById('galleries-grid');
+            container.innerHTML = `<div class="col-span-full mb-4 flex justify-between items-center"><div class="text-xl">All Photographs (${allPhotos.length})</div><button onclick="renderGalleries()" class="text-sm px-4 py-2 border border-white/20 rounded-xl">Back to Galleries</button></div>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'photo-grid col-span-full';
+            
+            allPhotos.forEach(photo => {
+                const item = createPhotoElement(photo, photo.galleryId);
+                grid.appendChild(item);
+            });
+            
+            container.appendChild(grid);
+        }
+        
+        // Open Gallery View
+        let currentGalleryId = null;
+        
+        function openGallery(galleryId) {
+            currentGalleryId = galleryId;
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            if (!gallery) return;
+            
+            const container = document.getElementById('galleries-grid');
+            container.innerHTML = `
+                <div class="col-span-full">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <button onclick="renderGalleries()" class="flex items-center gap-x-2 text-sm text-white/70 hover:text-white mb-3">
+                                <i class="fa-solid fa-arrow-left"></i> Back to all galleries
+                            </button>
+                            <div class="flex items-center gap-x-4">
+                                <h3 class="text-5xl heading-serif font-bold">${gallery.name}</h3>
+                                <button onclick="editGalleryName(${galleryId})" class="text-[#C5A26F] hover:text-white">
+                                    <i class="fa-solid fa-edit"></i>
+                                </button>
+                            </div>
+                            <p class="text-white/70 mt-1 max-w-xl">${gallery.description}</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-x-3">
+                            <button onclick="uploadToGallery(${galleryId})" 
+                                    class="px-6 py-3 bg-white/10 hover:bg-white/20 text-sm rounded-2xl flex items-center gap-x-2">
+                                <i class="fa-solid fa-upload"></i> <span class="hidden md:inline">Upload Photos</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="photo-grid" id="gallery-photos-grid">
+                        <!-- Photos populated here -->
+                    </div>
+                </div>
+            `;
+            
+            renderGalleryPhotos(galleryId);
+        }
+        
+        function renderGalleryPhotos(galleryId) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            const grid = document.getElementById('gallery-photos-grid');
+            if (!grid || !gallery) return;
+            
+            grid.innerHTML = '';
+            
+            if (gallery.photos.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16 border border-dashed border-white/20 rounded-3xl">
+                        <i class="fa-solid fa-images text-6xl text-white/20 mb-4"></i>
+                        <p class="text-white/60">This gallery is empty.<br>Upload your first photograph.</p>
+                        <button onclick="uploadToGallery(${galleryId})" class="mt-6 px-8 py-3 bg-[#C5A26F] text-black text-sm font-semibold rounded-2xl">Upload Photos</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            gallery.photos.forEach((photo, index) => {
+                const item = createPhotoElement(photo, galleryId, index);
+                grid.appendChild(item);
+            });
+        }
+        
+        function createPhotoElement(photo, galleryId, photoIndex = null) {
+            const div = document.createElement('div');
+            div.className = `photo-item rounded-3xl overflow-hidden border border-white/10 cursor-pointer relative group`;
+            
+            const isFavorited = photo.isFavorite || false;
+            
+            div.innerHTML = `
+                <img src="${photo.url}" class="w-full h-auto object-cover transition-transform" alt="${photo.title}">
+                <div class="photo-overlay absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div class="absolute bottom-0 left-0 p-4 w-full">
+                    <div class="font-medium text-sm line-clamp-2">${photo.title}</div>
+                    <div class="text-xs text-white/70">${photo.caption}</div>
+                </div>
+                
+                <div class="absolute top-3 right-3 flex gap-x-2">
+                    <button onclick="event.stopImmediatePropagation(); toggleFavorite(${galleryId}, ${photo.id}, this)" 
+                            class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-xs transition-all hover:scale-110">
+                        <i class="fa-solid fa-heart ${isFavorited ? 'text-red-500' : 'text-white'}"></i>
+                    </button>
+                </div>
+            `;
+            
+            div.onclick = () => openLightbox(galleryId, photo.id);
+            
+            return div;
+        }
+        
+        // Lightbox
+        let currentLightboxGalleryId = null;
+        let currentLightboxPhotoId = null;
+        
+        function openLightbox(galleryId, photoId) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            if (!gallery) return;
+            
+            const photoIndex = gallery.photos.findIndex(p => p.id === photoId);
+            if (photoIndex === -1) return;
+            
+            const photo = gallery.photos[photoIndex];
+            
+            currentLightboxGalleryId = galleryId;
+            currentLightboxPhotoId = photoId;
+            
+            document.getElementById('lightbox-image').src = photo.url;
+            document.getElementById('lightbox-title').textContent = photo.title;
+            document.getElementById('lightbox-caption').textContent = photo.caption;
+            document.getElementById('lightbox-exif').innerHTML = photo.exif || '—';
+            document.getElementById('lightbox-counter').textContent = `${photoIndex + 1} / ${gallery.photos.length}`;
+            
+            // Heart state
+            const heart = document.getElementById('lightbox-heart');
+            heart.classList.toggle('text-red-500', !!photo.isFavorite);
+            heart.classList.toggle('text-white', !photo.isFavorite);
+            
+            document.getElementById('lightbox').classList.remove('hidden');
+            document.getElementById('lightbox').classList.add('flex');
+        }
+        
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.classList.add('hidden');
+            lb.classList.remove('flex');
+        }
+        
+        function nextPhoto() {
+            const gallery = data.galleries.find(g => g.id === currentLightboxGalleryId);
+            if (!gallery) return;
+            
+            const currentIndex = gallery.photos.findIndex(p => p.id === currentLightboxPhotoId);
+            const nextIndex = (currentIndex + 1) % gallery.photos.length;
+            openLightbox(currentLightboxGalleryId, gallery.photos[nextIndex].id);
+        }
+        
+        function prevPhoto() {
+            const gallery = data.galleries.find(g => g.id === currentLightboxGalleryId);
+            if (!gallery) return;
+            
+            const currentIndex = gallery.photos.findIndex(p => p.id === currentLightboxPhotoId);
+            const prevIndex = (currentIndex - 1 + gallery.photos.length) % gallery.photos.length;
+            openLightbox(currentLightboxGalleryId, gallery.photos[prevIndex].id);
+        }
+        
+        function toggleFavoriteInLightbox() {
+            const gallery = data.galleries.find(g => g.id === currentLightboxGalleryId);
+            if (!gallery) return;
+            
+            const photo = gallery.photos.find(p => p.id === currentLightboxPhotoId);
+            if (!photo) return;
+            
+            photo.isFavorite = !photo.isFavorite;
+            saveData();
+            
+            const heart = document.getElementById('lightbox-heart');
+            heart.classList.toggle('text-red-500', photo.isFavorite);
+            heart.classList.toggle('text-white', !photo.isFavorite);
+            
+            // Refresh any open gallery views
+            if (!document.getElementById('galleries').classList.contains('hidden')) {
+                renderGalleryPhotos(currentLightboxGalleryId);
+            }
+            renderFavorites();
+        }
+        
+        function toggleFavorite(galleryId, photoId, element) {
+            event.stopImmediatePropagation();
+            
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            const photo = gallery.photos.find(p => p.id === photoId);
+            
+            photo.isFavorite = !photo.isFavorite;
+            saveData();
+            
+            const icon = element.querySelector('i');
+            icon.classList.toggle('text-red-500', photo.isFavorite);
+            icon.classList.toggle('text-white', !photo.isFavorite);
+            
+            // Update favorites count if visible
+            renderFavorites();
+        }
+        
+        function sharePhoto() {
+            const gallery = data.galleries.find(g => g.id === currentLightboxGalleryId);
+            const photo = gallery.photos.find(p => p.id === currentLightboxPhotoId);
+            
+            navigator.clipboard.writeText(`https://richharvie.com/gallery/${gallery.id}/photo/${photo.id}`).then(() => {
+                showToast("Link copied to clipboard", "success");
+            });
+        }
+        
+        function downloadPhoto() {
+            const gallery = data.galleries.find(g => g.id === currentLightboxGalleryId);
+            const photo = gallery.photos.find(p => p.id === currentLightboxPhotoId);
+            
+            const link = document.createElement('a');
+            link.href = photo.url;
+            link.download = `${photo.title.replace(/\s+/g, '-')}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Downloading high-resolution image...", "success");
+        }
+        
+        // Admin Functions
+        let isAdminAuthenticated = false;
+        
+        function openAdmin() {
+            if (!isAdminAuthenticated) {
+                const password = prompt("Enter admin password (hint: harvie2026)");
+                if (password === "harvie2026") {
+                    isAdminAuthenticated = true;
+                    showAdminDashboard();
+                } else {
+                    showToast("Incorrect password", "error");
+                }
+            } else {
+                showAdminDashboard();
+            }
+        }
+        
+        function showAdminDashboard() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            renderAdminGalleriesList();
+        }
+        
+        function closeAdmin() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        
+        function renderAdminGalleriesList() {
+            const container = document.getElementById('admin-galleries-list');
+            container.innerHTML = '';
+            
+            data.galleries.forEach(gallery => {
+                const div = document.createElement('div');
+                div.className = `bg-[#1A1A1A] rounded-2xl p-5 border border-white/10`;
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-semibold text-lg">${gallery.name}</div>
+                            <div class="text-xs text-white/60">${gallery.photos.length} photographs</div>
+                        </div>
+                        
+                        <div class="flex gap-x-1">
+                            <button onclick="editGalleryName(${gallery.id}, true)" class="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl">Rename</button>
+                            <button onclick="deleteGallery(${gallery.id})" class="text-xs px-3 py-1 bg-red-900/50 hover:bg-red-900 rounded-xl">Delete</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 flex gap-x-2">
+                        <button onclick="manageGalleryPhotos(${gallery.id}); closeAdmin()" 
+                                class="flex-1 py-2 text-xs border border-white/20 hover:bg-white/5 rounded-xl">Manage Photos</button>
+                        
+                        <button onclick="uploadToGallery(${gallery.id}); closeAdmin()" 
+                                class="flex-1 py-2 text-xs bg-[#C5A26F] text-black rounded-xl">Upload</button>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+        
+        function editGalleryName(galleryId, fromAdmin = false) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            const newName = prompt("New gallery name:", gallery.name);
+            if (newName && newName.trim() !== "") {
+                gallery.name = newName.trim();
+                saveData();
+                renderGalleries();
+                if (fromAdmin) renderAdminGalleriesList();
+                showToast("Gallery renamed successfully");
+            }
+        }
+        
+        function deleteGallery(galleryId) {
+            if (!confirm("Delete this entire gallery and all its photographs?")) return;
+            
+            data.galleries = data.galleries.filter(g => g.id !== galleryId);
+            saveData();
+            renderAdminGalleriesList();
+            renderGalleries();
+            showToast("Gallery deleted", "success");
+        }
+        
+        function createNewGallery() {
+            const name = prompt("New gallery name:");
+            if (!name) return;
+            
+            const desc = prompt("Short description (optional):") || "A new collection by Rich Harvie";
+            
+            const newGallery = {
+                id: Date.now(),
+                name: name.trim(),
+                description: desc,
+                cover: "https://picsum.photos/id/1015/800/600",
+                photos: []
+            };
+            
+            data.galleries.push(newGallery);
+            saveData();
+            renderAdminGalleriesList();
+            renderGalleries();
+            showToast("New gallery created");
+        }
+        
+        function manageGalleryPhotos(galleryId) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            if (!gallery) return;
+            
+            const container = document.getElementById('galleries-grid');
+            container.innerHTML = `
+                <div class="col-span-full">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <button onclick="renderGalleries()" class="text-sm flex items-center gap-x-2 text-[#C5A26F] mb-2">
+                                ← Back to galleries
+                            </button>
+                            <div class="text-3xl font-semibold">${gallery.name} — Manage Photos</div>
+                        </div>
+                        
+                        <button onclick="uploadToGallery(${galleryId})" class="px-6 py-3 bg-[#C5A26F] text-black rounded-2xl text-sm flex items-center gap-x-2">
+                            <i class="fa-solid fa-upload"></i> Upload More
+                        </button>
+                    </div>
+                    
+                    <div id="manage-photos-list" class="space-y-3"></div>
+                </div>
+            `;
+            
+            renderManagePhotosList(galleryId);
+        }
+        
+        function renderManagePhotosList(galleryId) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            const container = document.getElementById('manage-photos-list');
+            container.innerHTML = '';
+            
+            if (gallery.photos.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-white/50">No photos in this gallery yet.</div>`;
+                return;
+            }
+            
+            gallery.photos.forEach((photo, index) => {
+                const row = document.createElement('div');
+                row.className = `flex items-center gap-x-4 bg-[#1A1A1A] p-4 rounded-2xl border border-white/10`;
+                
+                row.innerHTML = `
+                    <div class="w-20 h-14 flex-shrink-0 rounded-xl overflow-hidden border border-white/10">
+                        <img src="${photo.url}" class="w-full h-full object-cover">
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                        <input type="text" value="${photo.title}" onchange="updatePhotoField(${galleryId}, ${photo.id}, 'title', this.value)" 
+                               class="bg-transparent w-full text-sm font-medium outline-none border-b border-white/20 pb-1">
+                        <input type="text" value="${photo.caption}" onchange="updatePhotoField(${galleryId}, ${photo.id}, 'caption', this.value)" 
+                               class="bg-transparent w-full text-xs text-white/60 mt-1 outline-none">
+                    </div>
+                    
+                    <div class="flex items-center gap-x-2 text-xs">
+                        <button onclick="setAsCover(${galleryId}, ${photo.id})" class="px-3 py-1.5 border border-white/30 hover:bg-white/5 rounded-xl">Cover</button>
+                        
+                        <button onclick="movePhotoUp(${galleryId}, ${index})" class="w-8 h-8 flex items-center justify-center border border-white/20 hover:bg-white/5 rounded-xl">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button onclick="movePhotoDown(${galleryId}, ${index})" class="w-8 h-8 flex items-center justify-center border border-white/20 hover:bg-white/5 rounded-xl">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                        
+                        <button onclick="deletePhoto(${galleryId}, ${photo.id})" class="px-3 py-1.5 text-red-400 hover:bg-red-900/30 rounded-xl">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(row);
+            });
+        }
+        
+        function updatePhotoField(galleryId, photoId, field, value) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            const photo = gallery.photos.find(p => p.id === photoId);
+            photo[field] = value;
+            saveData();
+        }
+        
+        function setAsCover(galleryId, photoId) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            const photo = gallery.photos.find(p => p.id === photoId);
+            gallery.cover = photo.url;
+            saveData();
+            showToast("Cover photo updated");
+            renderManagePhotosList(galleryId);
+            renderGalleries();
+        }
+        
+        function movePhotoUp(galleryId, index) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            if (index === 0) return;
+            
+            [gallery.photos[index], gallery.photos[index-1]] = [gallery.photos[index-1], gallery.photos[index]];
+            saveData();
+            renderManagePhotosList(galleryId);
+        }
+        
+        function movePhotoDown(galleryId, index) {
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            if (index === gallery.photos.length - 1) return;
+            
+            [gallery.photos[index], gallery.photos[index+1]] = [gallery.photos[index+1], gallery.photos[index]];
+            saveData();
+            renderManagePhotosList(galleryId);
+        }
+        
+        function deletePhoto(galleryId, photoId) {
+            if (!confirm("Delete this photograph permanently?")) return;
+            
+            const gallery = data.galleries.find(g => g.id === galleryId);
+            gallery.photos = gallery.photos.filter(p => p.id !== photoId);
+            saveData();
+            renderManagePhotosList(galleryId);
+            renderGalleries();
+            showToast("Photo deleted");
+        }
+        
+        function uploadToGallery(galleryId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = 'image/*';
+            
+            input.onchange = async (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
+                
+                const gallery = data.galleries.find(g => g.id === galleryId);
+                let addedCount = 0;
+                
+                for (const file of files) {
+                    const base64 = await fileToBase64(file);
+                    
+                    const newPhoto = {
+                        id: Date.now() + Math.floor(Math.random() * 10000),
+                        url: base64,
+                        title: file.name.replace(/\.[^/.]+$/, ""),
+                        caption: "New upload — " + new Date().toLocaleDateString(),
+                        exif: "Uploaded • " + file.type.split('/')[1].toUpperCase(),
+                        isFavorite: false
+                    };
+                    
+                    gallery.photos.unshift(newPhoto);
+                    addedCount++;
+                }
+                
+                saveData();
+                showToast(`${addedCount} photographs uploaded successfully`, "success");
+                
+                // Refresh current view
+                if (document.getElementById('admin-modal').classList.contains('flex')) {
+                    closeAdmin();
+                }
+                
+                if (currentGalleryId === galleryId) {
+                    renderGalleryPhotos(galleryId);
+                } else {
+                    renderGalleries();
+                }
+            };
+            
+            input.click();
+        }
+        
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Favorites
+        function renderFavorites() {
+            const container = document.getElementById('favorites-grid');
+            const empty = document.getElementById('favorites-empty');
+            container.innerHTML = '';
+            
+            let count = 0;
+            
+            data.galleries.forEach(gallery => {
+                gallery.photos.forEach(photo => {
+                    if (photo.isFavorite) {
+                        count++;
+                        const item = createPhotoElement(photo, gallery.id);
+                        container.appendChild(item);
+                    }
+                });
+            });
+            
+            document.getElementById('favorites-count').textContent = `${count} photographs saved`;
+            
+            if (count === 0) {
+                empty.classList.remove('hidden');
+                container.classList.add('hidden');
+            } else {
+                empty.classList.add('hidden');
+                container.classList.remove('hidden');
+            }
+        }
+        
+        // Global Search
+        function handleGlobalSearch(term) {
+            if (!term || term.length < 2) {
+                if (!document.getElementById('galleries').classList.contains('hidden')) {
+                    renderGalleries();
+                }
+                return;
+            }
+            
+            showSection('galleries');
+            
+            const filtered = data.galleries.filter(g => 
+                g.name.toLowerCase().includes(term.toLowerCase()) || 
+                g.description.toLowerCase().includes(term.toLowerCase()) ||
+                g.photos.some(p => p.title.toLowerCase().includes(term.toLowerCase()) || p.caption.toLowerCase().includes(term.toLowerCase()))
+            );
+            
+            renderGalleries(filtered);
+        }
+        
+        // Contact Form
+        function submitContactForm(e) {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = `<span>Sending...</span>`;
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = `Message Sent ✓`;
+                showToast("Thank you. Rich will reply within 48 hours.", "success");
+                
+                // Confetti
+                launchConfetti();
+                
+                setTimeout(() => {
+                    e.target.reset();
+                    btn.innerHTML = `SEND MESSAGE <i class="fa-solid fa-paper-plane ml-2"></i>`;
+                    btn.disabled = false;
+                    showSection('home');
+                }, 1800);
+            }, 1200);
+        }
+        
+        function launchConfetti() {
+            const colors = ['#C5A26F', '#ffffff', '#4B5563'];
+            for (let i = 0; i < 80; i++) {
+                setTimeout(() => {
+                    const confetto = document.createElement('div');
+                    confetto.style.position = 'fixed';
+                    confetto.style.left = Math.random() * window.innerWidth + 'px';
+                    confetto.style.top = '-10px';
+                    confetto.style.width = '8px';
+                    confetto.style.height = '8px';
+                    confetto.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    confetto.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetto.style.zIndex = '9999';
+                    confetto.style.pointerEvents = 'none';
+                    document.body.appendChild(confetto);
+                    
+                    const duration = Math.random() * 2500 + 1800;
+                    confetto.animate([
+                        { transform: `translateY(0) rotate(0deg)`, opacity: 1 },
+                        { transform: `translateY(${window.innerHeight + 100}px) rotate(${Math.random() * 800 - 200}deg)`, opacity: 0 }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+                    }).onfinish = () => confetto.remove();
+                }, i * 0.8);
+            }
+        }
+        
+        // Utility: Toast
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `toast px-6 py-4 rounded-2xl shadow-xl flex items-center gap-x-3 max-w-xs text-sm ${type === 'success' ? 'bg-emerald-900 text-emerald-100' : 'bg-red-900 text-red-100'}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+        
+        // Section Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
+            
+            // Show target
+            const target = document.getElementById(section);
+            if (target) target.classList.remove('hidden');
+            
+            // Special renders
+            if (section === 'galleries') {
+                renderGalleries();
+            }
+            if (section === 'favorites') {
+                renderFavorites();
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function toggleMobileMenu() {
+            // Simple mobile menu could be expanded here
+            showSection('galleries');
+        }
+        
+        function updateFeaturedGrid() {
+            const container = document.getElementById('featured-grid');
+            container.innerHTML = '';
+            
+            // Pick 5 random photos from all galleries
+            let allPhotos = [];
+            data.galleries.forEach(g => {
+                g.photos.forEach(p => allPhotos.push({...p, galleryId: g.id}));
+            });
+            
+            // Shuffle and take 5
+            allPhotos = allPhotos.sort(() => 0.5 - Math.random()).slice(0, 5);
+            
+            allPhotos.forEach(photo => {
+                const div = document.createElement('div');
+                div.className = `aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 cursor-pointer relative group`;
+                div.innerHTML = `
+                    <img src="${photo.url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                    <div class="absolute bottom-4 left-4 text-sm font-medium">${photo.title}</div>
+                `;
+                div.onclick = () => openLightbox(photo.galleryId, photo.id);
+                container.appendChild(div);
+            });
+        }
+        
+        // Keyboard Shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '?' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    showToast("Keyboard shortcuts: G = Galleries • F = Favorites • A = Admin • ESC = Close", "success");
+                }
+                
+                if (e.key.toLowerCase() === 'g' && document.activeElement.tagName === 'BODY') {
+                    showSection('galleries');
+                }
+                
+                if (e.key.toLowerCase() === 'f' && document.activeElement.tagName === 'BODY') {
+                    showSection('favorites');
+                }
+                
+                if (e.key.toLowerCase() === 'a' && document.activeElement.tagName === 'BODY') {
+                    openAdmin();
+                }
+                
+                if (e.key === 'Escape') {
+                    const lb = document.getElementById('lightbox');
+                    if (!lb.classList.contains('hidden')) {
+                        closeLightbox();
+                    } else {
+                        const admin = document.getElementById('admin-modal');
+                        if (!admin.classList.contains('hidden')) closeAdmin();
+                    }
+                }
+            });
+            
+            // Lightbox arrow keys
+            document.addEventListener('keydown', function(e) {
+                const lb = document.getElementById('lightbox');
+                if (!lb.classList.contains('hidden')) {
+                    if (e.key === 'ArrowRight') nextPhoto();
+                    if (e.key === 'ArrowLeft') prevPhoto();
+                }
+            });
+        }
+        
+        // Export / Import (for admin)
+        function exportData() {
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `rich-harvie-collection-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showToast("Collection exported successfully");
+        }
+        
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        if (imported.galleries) {
+                            data = imported;
+                            saveData();
+                            renderGalleries();
+                            showToast("Collection imported successfully", "success");
+                            closeAdmin();
+                        }
+                    } catch(err) {
+                        showToast("Invalid file format", "error");
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Initialize Everything
+        function initializeWebsite() {
+            initializeTailwind();
+            loadData();
+            
+            // Render initial galleries
+            renderGalleries();
+            
+            // Featured works
+            updateFeaturedGrid();
+            
+            // Keyboard
+            setupKeyboardShortcuts();
+            
+            // Show home by default
+            document.getElementById('home').classList.remove('hidden');
+            
+            // Demo tip
+            setTimeout(() => {
+                // Uncomment if you want a welcome toast
+                // showToast("Welcome to Rich Harvie Studio. Try the Manage button (password: harvie2026)", "success");
+            }, 4500);
+            
+            // Make sure mobile search works
+            const globalSearch = document.getElementById('global-search');
+            if (globalSearch) {
+                globalSearch.addEventListener('focus', () => {
+                    if (document.getElementById('galleries').classList.contains('hidden')) {
+                        showSection('galleries');
+                    }
+                });
+            }
+            
+            console.log('%c[Rich Harvie] Premium photography exhibition website initialized successfully.', 'color:#C5A26F');
+        }
+        
+        // Boot
+        window.onload = initializeWebsite;
+    </script>
+</body>
+</html>
